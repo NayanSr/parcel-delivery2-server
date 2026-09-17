@@ -145,10 +145,67 @@ const getParcelById = async (req, res) => {
   }
 };
 
+// @desc    Assign rider to a parcel
+// @route   PATCH /api/parcels/:id/assign
+// @access  Private (Admin)
+const assignRider = async (req, res) => {
+  try {
+    const { riderId } = req.body;
+
+    if (!riderId) {
+      return res.status(400).json({ message: "Rider ID is required" });
+    }
+
+    const parcel = await Parcel.findById(req.params.id);
+
+    if (!parcel) {
+      return res.status(404).json({ message: "Parcel not found" });
+    }
+
+    // Rider আছে কিনা চেক
+    const User = require("../models/User");
+    const rider = await User.findById(riderId);
+
+    if (!rider || rider.role !== "rider") {
+      return res.status(400).json({ message: "Invalid rider" });
+    }
+
+    parcel.assignedRider = riderId;
+    parcel.status = "assigned";
+    await parcel.save();
+
+    const updatedParcel = await Parcel.findById(parcel._id)
+      .populate("assignedRider", "name phone email")
+      .populate("sender", "name phone");
+
+    res.json(updatedParcel);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+// @desc    Get parcels assigned to logged-in rider
+// @route   GET /api/parcels/assigned
+// @access  Private (Rider)
+const getAssignedParcels = async (req, res) => {
+  try {
+    const parcels = await Parcel.find({ assignedRider: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate("sender", "name phone");
+
+    res.json(parcels);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 module.exports = {
   createParcel,
   getMyParcels,
   getAllParcels,
   updateParcelStatus,
   getParcelById,
+  getAssignedParcels,
+  assignRider
 };

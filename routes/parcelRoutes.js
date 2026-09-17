@@ -6,20 +6,25 @@ const {
   getAllParcels,
   updateParcelStatus,
   getParcelById,
+  assignRider,
+  getAssignedParcels,
 } = require("../controllers/parcelController");
-
 
 const { protect } = require("../middleware/authMiddleware");
 const { authorizeRoles } = require("../middleware/roleMiddleware");
 
-// User routes
+// User
 router.post("/", protect, authorizeRoles("user"), createParcel);
 router.get("/my-parcels", protect, authorizeRoles("user"), getMyParcels);
 
-// Admin routes
-router.get("/", protect, authorizeRoles("admin"), getAllParcels);
+// Rider
+router.get("/assigned", protect, authorizeRoles("rider"), getAssignedParcels);
 
-// Common
+// Admin
+router.get("/", protect, authorizeRoles("admin"), getAllParcels);
+router.patch("/:id/assign", protect, authorizeRoles("admin"), assignRider);
+
+// Common (Admin + Rider)
 router.get("/:id", protect, getParcelById);
 router.patch(
   "/:id/status",
