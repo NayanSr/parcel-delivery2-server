@@ -12,8 +12,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/auth", require("./routes/authRoutes"));
 
+
+
+
+// Routes
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/parcels", require("./routes/parcelRoutes"));
+
+// Test Route
 app.get("/", (req, res) => {
   res.send("Parcel is ready now.");
 });
